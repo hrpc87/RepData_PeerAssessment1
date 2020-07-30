@@ -8,17 +8,36 @@ output:
   html_notebook: default
 ---
 
-```{r setup, include=FALSE, error=FALSE, message=FALSE, warning=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
-```
+
 
 
 ## Loading and pre-processing the data
 First step is to download the raw data using the link. Then use the function to download and unzip the file and place it in the folder.
 
 ### 1. Load Data
-```{r results = 'hide', warning=FALSE}
+
+```r
 library(dplyr)
+```
+
+```
+
+Attaching package: 'dplyr'
+```
+
+```
+The following objects are masked from 'package:stats':
+
+    filter, lag
+```
+
+```
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+```
+
+```r
 library(ggplot2)
 library(knitr)
 
@@ -27,10 +46,10 @@ if(!file.exists("data.zip")){
   download.file(fileUrl, destfile = "data.zip", method = "curl")
 }
 unzip("data.zip")
-
 ```
 Then we need to read the CSV table
-```{r results = 'hold'}
+
+```r
 ## READ TABLE
 data<- read.csv("activity.csv", header = TRUE)
 ```
@@ -38,7 +57,8 @@ data<- read.csv("activity.csv", header = TRUE)
 ## 2. What is mean total number of steps taken per day?
 In this step we calculate the mean and the median removing the NAs from the dataset.
 Also the dplyr package is used to group the data.
-```{r results = 'hold', warning=FALSE}
+
+```r
 steps_sum <- data%>% group_by(date) %>% summarise(sum(steps))
 names(steps_sum)[2] <- "steps"
 steps_avg <- mean(steps_sum$steps, na.rm = TRUE) #This is the mean
@@ -47,15 +67,27 @@ steps_median <- median(steps_sum$steps, na.rm = TRUE) # This is the median
 g <- ggplot(data = steps_sum, aes(x = date, y = steps)) 
 g <- g + geom_bar(stat = "identity") + geom_hline(yintercept = steps_avg, color = "blue")
 g
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
 ggplot(steps_sum, aes(steps)) + geom_histogram(binwidth = 600)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+
 We can see now the mean and the median of the total number of steps taken per day.
 
-```{r results = 'hold'}
+
+```r
 steps_avg
 steps_median
+```
+
+```
+[1] 10766.19
+[1] 10765
 ```
 
 
@@ -63,7 +95,8 @@ steps_median
 ## 2. What is the average daily activity pattern?
 Here we calculate the groups per intervals and get the maximum value.
 
-```{r results = 'hold'}
+
+```r
 dat <- data
 dat <- dat %>% group_by(interval) %>% summarise(mean(steps, na.rm = TRUE))
 names(dat)[2] <- "steps"
@@ -77,16 +110,25 @@ g <- g + geom_vline(xintercept = maxinterval, col = "green", lwd = 0.6, alpha = 
 g
 ```
 
-```{r results = 'hold'}
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+
+```r
 maxstep
 maxinterval
+```
+
+```
+[1] 206.1698
+[1] 835
 ```
 
 ## 3. Imputing missing values
 
 For imputing the missing values we used the previous table with average steps per interval and populate the NAs with these values.
 
-```{r results = 'hold'}
+
+```r
 data1 <- data
 NA_count <- 0
 NA_rows <- c()
@@ -109,11 +151,24 @@ steps_median1 <- median(steps_sum1$steps, na.rm = TRUE) # This is the median
 g <- ggplot(data = steps_sum1, aes(x = date, y = steps)) 
 g <- g + geom_bar(stat = "identity") + geom_hline(yintercept = steps_avg1, color = "blue")
 g
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
 ggplot(steps_sum1, aes(steps)) + geom_histogram(binwidth = 600)
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+
+```r
 steps_avg1
 steps_median1
+```
+
+```
+[1] 10766.19
+[1] 10766.19
 ```
 
 
@@ -123,7 +178,8 @@ steps_median1
 In this step we split beetween weekdays and weekend days, by creating a function.
 Then we calculate the average per weekday and weekend.
 
-```{r results = 'hold'}
+
+```r
 data2 <- data1
 data2$date <- as.Date(data2$date, format = "%Y-%m-%d")
 
@@ -152,3 +208,24 @@ names(isWeekend.labs) <- c("Working day", "Weekend")
 g <- ggplot(data = data2, aes(x = interval, y = steps)) + geom_line() + facet_grid(.~ isWeekend, labeller = label_both)
 g
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+Table: Head of Weekday vs Weekend Data
+
+ interval  isWeekend        steps
+---------  ----------  ----------
+        0  FALSE        2.2511530
+        0  TRUE         0.2146226
+        5  FALSE        0.4452830
+        5  TRUE         0.0424528
+       10  FALSE        0.1731656
+       10  TRUE         0.0165094
+
+
+
+Table: Average Table
+
+ WorkingDays   Weekends
+------------  ---------
+     42.3664   35.61058
